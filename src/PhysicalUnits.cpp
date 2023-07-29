@@ -14,17 +14,12 @@ enum class Measure {
 
 constexpr int totalMeasures = 8;
 
-template <Measure M>
-struct MeasureExponent final {
-  static consteval Measure getMeasure() {
-    return M;
-  }
+template <Measure M> struct MeasureExponent final {
+  static constexpr Measure getMeasure() { return M; }
 
   const int exp;
 
-  explicit inline constexpr MeasureExponent(const int exp):
-    exp(exp) {
-  }
+  explicit inline constexpr MeasureExponent(const int exp) : exp(exp) {}
 
   inline constexpr auto operator+(const MeasureExponent &m) const {
     return MeasureExponent(exp + m.exp);
@@ -35,19 +30,18 @@ struct MeasureExponent final {
   }
 };
 
+/*
 constexpr const char *const MeasureNames[totalMeasures] = {
-  "Length", "Mass",        "Time",       "Angle",
-  "Charge", "Temperature", "Luminosity", "Amount"
-};
+    "Length", "Mass",        "Time",       "Angle",
+    "Charge", "Temperature", "Luminosity", "Amount"};
 
 constexpr const char *const MeasureUnits[totalMeasures] = {
-  "Meter",   "Kilogram", "Second",  "Radian",
-  "Coulomb", "Kelvin",   "Candela", "Mole"
-};
+    "Meter",   "Kilogram", "Second",  "Radian",
+    "Coulomb", "Kelvin",   "Candela", "Mole"};
+*/
 
 constexpr const char *const MeasureUnitSymbols[totalMeasures] = {
-  "m", "kg", "s", "rad", "C", "K", "cd", "mol"
-};
+    "m", "kg", "s", "rad", "C", "K", "cd", "mol"};
 
 using NumericalType = double;
 
@@ -60,48 +54,30 @@ using TemperatureExponent = MeasureExponent<Measure::Temperature>;
 using LuminosityExponent = MeasureExponent<Measure::Luminosity>;
 using AmountExponent = MeasureExponent<Measure::Amount>;
 
-template <
-  LengthExponent Le, MassExponent Ma, TimeExponent Ti, AngleExponent An,
-  ChargeExponent Ch, TemperatureExponent Te, LuminosityExponent Lu,
-  AmountExponent Am>
+template <LengthExponent Le, MassExponent Ma, TimeExponent Ti, AngleExponent An,
+          ChargeExponent Ch, TemperatureExponent Te, LuminosityExponent Lu,
+          AmountExponent Am>
 class Quantity final {
 private:
   static inline char units[256];
   static inline bool unitsPrinted = false;
 
 public:
+  static constexpr LengthExponent getLengthExponent() { return Le; }
 
-  static consteval LengthExponent getLengthExponent() {
-    return Le;
-  }
+  static constexpr MassExponent getMassExponent() { return Ma; }
 
-  static consteval MassExponent getMassExponent() {
-    return Ma;
-  }
+  static constexpr TimeExponent getTimeExponent() { return Ti; }
 
-  static consteval TimeExponent getTimeExponent() {
-    return Ti;
-  }
+  static constexpr AngleExponent getAngleExponent() { return An; }
 
-  static consteval AngleExponent getAngleExponent() {
-    return An;
-  }
+  static constexpr ChargeExponent getChargeExponent() { return Ch; }
 
-  static consteval ChargeExponent getChargeExponent() {
-    return Ch;
-  }
+  static constexpr TemperatureExponent getTemperatureExponent() { return Te; }
 
-  static consteval TemperatureExponent getTemperatureExponent() {
-    return Te;
-  }
+  static constexpr LuminosityExponent getLuminosityExponent() { return Lu; }
 
-  static consteval LuminosityExponent getLuminosityExponent() {
-    return Lu;
-  }
-
-  static consteval AmountExponent getAmountExponent() {
-    return Am;
-  }
+  static constexpr AmountExponent getAmountExponent() { return Am; }
 
   inline constexpr auto &operator+=(const Quantity &rhs) {
     value += rhs.value;
@@ -121,98 +97,73 @@ public:
     return Quantity<Le, Ma, Ti, An, Ch, Te, Lu, Am>(value - rhs.value);
   }
 
-  template <class Right>
-  inline constexpr auto operator*(const Right &rhs) {
+  template <class Right> inline constexpr auto operator*(const Right &rhs) {
     using Left = Quantity;
 
-    constexpr LengthExponent le(
-      Left::getLengthExponent() + Right::getLengthExponent()
-    );
-    constexpr MassExponent ma(
-      Left::getMassExponent() + Right::getMassExponent()
-    );
-    constexpr TimeExponent ti(
-      Left::getTimeExponent() + Right::getTimeExponent()
-    );
-    constexpr AngleExponent an(
-      Left::getAngleExponent() + Right::getAngleExponent()
-    );
-    constexpr ChargeExponent ch(
-      Left::getChargeExponent() + Right::getChargeExponent()
-    );
-    constexpr TemperatureExponent te(
-      Left::getTemperatureExponent() + Right::getTemperatureExponent()
-    );
-    constexpr LuminosityExponent lu(
-      Left::getLuminosityExponent() + Right::getLuminosityExponent()
-    );
-    constexpr AmountExponent am(
-      Left::getAmountExponent() + Right::getAmountExponent()
-    );
+    constexpr LengthExponent le(Left::getLengthExponent() +
+                                Right::getLengthExponent());
+    constexpr MassExponent ma(Left::getMassExponent() +
+                              Right::getMassExponent());
+    constexpr TimeExponent ti(Left::getTimeExponent() +
+                              Right::getTimeExponent());
+    constexpr AngleExponent an(Left::getAngleExponent() +
+                               Right::getAngleExponent());
+    constexpr ChargeExponent ch(Left::getChargeExponent() +
+                                Right::getChargeExponent());
+    constexpr TemperatureExponent te(Left::getTemperatureExponent() +
+                                     Right::getTemperatureExponent());
+    constexpr LuminosityExponent lu(Left::getLuminosityExponent() +
+                                    Right::getLuminosityExponent());
+    constexpr AmountExponent am(Left::getAmountExponent() +
+                                Right::getAmountExponent());
 
     return Quantity<le, ma, ti, an, ch, te, lu, am>(value * rhs.value);
   }
 
-  template <class Right>
-  inline constexpr auto operator/(const Right &rhs) {
+  template <class Right> inline constexpr auto operator/(const Right &rhs) {
     using Left = Quantity;
 
-    constexpr LengthExponent le(
-      Left::getLengthExponent() - Right::getLengthExponent()
-    );
-    constexpr MassExponent ma(
-      Left::getMassExponent() - Right::getMassExponent()
-    );
-    constexpr TimeExponent ti(
-      Left::getTimeExponent() - Right::getTimeExponent()
-    );
-    constexpr AngleExponent an(
-      Left::getAngleExponent() - Right::getAngleExponent()
-    );
-    constexpr ChargeExponent ch(
-      Left::getChargeExponent() - Right::getChargeExponent()
-    );
-    constexpr TemperatureExponent te(
-      Left::getTemperatureExponent() - Right::getTemperatureExponent()
-    );
-    constexpr LuminosityExponent lu(
-      Left::getLuminosityExponent() - Right::getLuminosityExponent()
-    );
-    constexpr AmountExponent am(
-      Left::getAmountExponent() - Right::getAmountExponent()
-    );
+    constexpr LengthExponent le(Left::getLengthExponent() -
+                                Right::getLengthExponent());
+    constexpr MassExponent ma(Left::getMassExponent() -
+                              Right::getMassExponent());
+    constexpr TimeExponent ti(Left::getTimeExponent() -
+                              Right::getTimeExponent());
+    constexpr AngleExponent an(Left::getAngleExponent() -
+                               Right::getAngleExponent());
+    constexpr ChargeExponent ch(Left::getChargeExponent() -
+                                Right::getChargeExponent());
+    constexpr TemperatureExponent te(Left::getTemperatureExponent() -
+                                     Right::getTemperatureExponent());
+    constexpr LuminosityExponent lu(Left::getLuminosityExponent() -
+                                    Right::getLuminosityExponent());
+    constexpr AmountExponent am(Left::getAmountExponent() -
+                                Right::getAmountExponent());
 
     return Quantity<le, ma, ti, an, ch, te, lu, am>(value / rhs.value);
   }
 
-  explicit inline constexpr Quantity(
-    const NumericalType value, const char *const variable = nullptr
-  ):
-    value(value),
-    variable(variable) {
-  }
+  explicit inline constexpr Quantity(const NumericalType value,
+                                     const char *const variable = nullptr)
+      : value(value), variable(variable) {}
 
-  void setVariableString(const char *const string) {
-    this->variable = string;
-  }
+  void setVariableString(const char *const string) { this->variable = string; }
 
 private:
-  template <class T>
-  static void setUnit(const T &exponent, int &count) {
+  template <class T> static void setUnit(const T &exponent, int &count) {
     constexpr const char *const onefmt = "%s ";
     constexpr const char *const pwrfmt = "%s^%d ";
 
     const int exp = exponent.exp;
     constexpr int measureIndex = static_cast<int>(T::getMeasure());
 
-    if(exp != 0) {
+    if (exp != 0) {
       const char *symbol = MeasureUnitSymbols[measureIndex];
-      if(exp == 1) {
-        count +=
-          snprintf(units + count, sizeof(units) - count, onefmt, symbol);
+      if (exp == 1) {
+        count += snprintf(units + count, sizeof(units) - count, onefmt, symbol);
       } else {
         count +=
-          snprintf(units + count, sizeof(units) - count, pwrfmt, symbol, exp);
+            snprintf(units + count, sizeof(units) - count, pwrfmt, symbol, exp);
       }
     }
   }
@@ -229,7 +180,7 @@ private:
     setUnit(Lu, count);
     setUnit(Am, count);
 
-    if(count > 0) {
+    if (count > 0) {
       units[count - 1] = '\0';
     }
 
@@ -237,9 +188,8 @@ private:
   }
 
 public:
-
   static const char *getUnits() {
-    if(!unitsPrinted) {
+    if (!unitsPrinted) {
       setUnits();
     }
 
@@ -255,112 +205,109 @@ public:
 // Base Quantities
 //
 ///////////////////////////////////////////////////////////////////////////////
-using DimensionlessQuantity = Quantity<
-  LengthExponent(0), MassExponent(0), TimeExponent(0), AngleExponent(0),
-  ChargeExponent(0), TemperatureExponent(0), LuminosityExponent(0),
-  AmountExponent(0)>;
-using LengthQuantity = Quantity<
-  LengthExponent(1), MassExponent(0), TimeExponent(0), AngleExponent(0),
-  ChargeExponent(0), TemperatureExponent(0), LuminosityExponent(0),
-  AmountExponent(0)>;
-using MassQuantity = Quantity<
-  LengthExponent(0), MassExponent(1), TimeExponent(0), AngleExponent(0),
-  ChargeExponent(0), TemperatureExponent(0), LuminosityExponent(0),
-  AmountExponent(0)>;
-using TimeQuantity = Quantity<
-  LengthExponent(0), MassExponent(0), TimeExponent(1), AngleExponent(0),
-  ChargeExponent(0), TemperatureExponent(0), LuminosityExponent(0),
-  AmountExponent(0)>;
-using AngleQuantity = Quantity<
-  LengthExponent(0), MassExponent(0), TimeExponent(0), AngleExponent(1),
-  ChargeExponent(0), TemperatureExponent(0), LuminosityExponent(0),
-  AmountExponent(0)>;
-using ChargeQuantity = Quantity<
-  LengthExponent(0), MassExponent(0), TimeExponent(0), AngleExponent(0),
-  ChargeExponent(1), TemperatureExponent(0), LuminosityExponent(0),
-  AmountExponent(0)>;
-using TemperatureQuantity = Quantity<
-  LengthExponent(0), MassExponent(0), TimeExponent(0), AngleExponent(0),
-  ChargeExponent(0), TemperatureExponent(1), LuminosityExponent(0),
-  AmountExponent(0)>;
-using LuminosityQuantity = Quantity<
-  LengthExponent(0), MassExponent(0), TimeExponent(0), AngleExponent(0),
-  ChargeExponent(0), TemperatureExponent(0), LuminosityExponent(1),
-  AmountExponent(0)>;
-using AmountQuantity = Quantity<
-  LengthExponent(0), MassExponent(0), TimeExponent(0), AngleExponent(0),
-  ChargeExponent(0), TemperatureExponent(0), LuminosityExponent(0),
-  AmountExponent(1)>;
+using DimensionlessQuantity =
+    Quantity<LengthExponent(0), MassExponent(0), TimeExponent(0),
+             AngleExponent(0), ChargeExponent(0), TemperatureExponent(0),
+             LuminosityExponent(0), AmountExponent(0)>;
+using LengthQuantity =
+    Quantity<LengthExponent(1), MassExponent(0), TimeExponent(0),
+             AngleExponent(0), ChargeExponent(0), TemperatureExponent(0),
+             LuminosityExponent(0), AmountExponent(0)>;
+using MassQuantity =
+    Quantity<LengthExponent(0), MassExponent(1), TimeExponent(0),
+             AngleExponent(0), ChargeExponent(0), TemperatureExponent(0),
+             LuminosityExponent(0), AmountExponent(0)>;
+using TimeQuantity =
+    Quantity<LengthExponent(0), MassExponent(0), TimeExponent(1),
+             AngleExponent(0), ChargeExponent(0), TemperatureExponent(0),
+             LuminosityExponent(0), AmountExponent(0)>;
+using AngleQuantity =
+    Quantity<LengthExponent(0), MassExponent(0), TimeExponent(0),
+             AngleExponent(1), ChargeExponent(0), TemperatureExponent(0),
+             LuminosityExponent(0), AmountExponent(0)>;
+using ChargeQuantity =
+    Quantity<LengthExponent(0), MassExponent(0), TimeExponent(0),
+             AngleExponent(0), ChargeExponent(1), TemperatureExponent(0),
+             LuminosityExponent(0), AmountExponent(0)>;
+using TemperatureQuantity =
+    Quantity<LengthExponent(0), MassExponent(0), TimeExponent(0),
+             AngleExponent(0), ChargeExponent(0), TemperatureExponent(1),
+             LuminosityExponent(0), AmountExponent(0)>;
+using LuminosityQuantity =
+    Quantity<LengthExponent(0), MassExponent(0), TimeExponent(0),
+             AngleExponent(0), ChargeExponent(0), TemperatureExponent(0),
+             LuminosityExponent(1), AmountExponent(0)>;
+using AmountQuantity =
+    Quantity<LengthExponent(0), MassExponent(0), TimeExponent(0),
+             AngleExponent(0), ChargeExponent(0), TemperatureExponent(0),
+             LuminosityExponent(0), AmountExponent(1)>;
 
 ///////////////////////////////////////////////////////////////////////////////
 //
 // Derived Quantities
 //
 ///////////////////////////////////////////////////////////////////////////////
-using SpeedQuantity = Quantity<
-  LengthExponent(1), MassExponent(0), TimeExponent(-1), AngleExponent(0),
-  ChargeExponent(0), TemperatureExponent(0), LuminosityExponent(0),
-  AmountExponent(0)>;
-using AccelerationQuantity = Quantity<
-  LengthExponent(1), MassExponent(0), TimeExponent(-2), AngleExponent(0),
-  ChargeExponent(0), TemperatureExponent(0), LuminosityExponent(0),
-  AmountExponent(0)>;
-using ForceQuantity = Quantity<
-  LengthExponent(1), MassExponent(1), TimeExponent(-2), AngleExponent(0),
-  ChargeExponent(0), TemperatureExponent(0), LuminosityExponent(0),
-  AmountExponent(0)>;
-using MomentumQuantity = Quantity<
-  LengthExponent(1), MassExponent(1), TimeExponent(-1), AngleExponent(0),
-  ChargeExponent(0), TemperatureExponent(0), LuminosityExponent(0),
-  AmountExponent(0)>;
-using EnergyQuantity = Quantity<
-  LengthExponent(2), MassExponent(1), TimeExponent(-2), AngleExponent(0),
-  ChargeExponent(0), TemperatureExponent(0), LuminosityExponent(0),
-  AmountExponent(0)>;
-using FrequencyQuantity = Quantity<
-  LengthExponent(0), MassExponent(0), TimeExponent(-1), AngleExponent(0),
-  ChargeExponent(0), TemperatureExponent(0), LuminosityExponent(0),
-  AmountExponent(0)>;
-using AngularFrequencyQuantity = Quantity<
-  LengthExponent(0), MassExponent(0), TimeExponent(-1), AngleExponent(1),
-  ChargeExponent(0), TemperatureExponent(0), LuminosityExponent(0),
-  AmountExponent(0)>;
-using AngularAccelerationQuantity = Quantity<
-  LengthExponent(0), MassExponent(0), TimeExponent(-2), AngleExponent(1),
-  ChargeExponent(0), TemperatureExponent(0), LuminosityExponent(0),
-  AmountExponent(0)>;
-using MassMomentOfInertiaQuantity = Quantity<
-  LengthExponent(2), MassExponent(1), TimeExponent(0), AngleExponent(0),
-  ChargeExponent(0), TemperatureExponent(0), LuminosityExponent(0),
-  AmountExponent(0)>;
-using TorqueQuantity = Quantity<
-  LengthExponent(2), MassExponent(1), TimeExponent(-2), AngleExponent(1),
-  ChargeExponent(0), TemperatureExponent(0), LuminosityExponent(0),
-  AmountExponent(0)>;
-using AngularMomentumQuantity = Quantity<
-  LengthExponent(2), MassExponent(1), TimeExponent(-1), AngleExponent(1),
-  ChargeExponent(0), TemperatureExponent(0), LuminosityExponent(0),
-  AmountExponent(0)>;
-using AreaQuantity = Quantity<
-  LengthExponent(2), MassExponent(0), TimeExponent(0), AngleExponent(0),
-  ChargeExponent(0), TemperatureExponent(0), LuminosityExponent(0),
-  AmountExponent(0)>;
-using VolumeQuantity = Quantity<
-  LengthExponent(3), MassExponent(0), TimeExponent(0), AngleExponent(0),
-  ChargeExponent(0), TemperatureExponent(0), LuminosityExponent(0),
-  AmountExponent(0)>;
-using PressureQuantity = Quantity<
-  LengthExponent(-1), MassExponent(1), TimeExponent(-2), AngleExponent(0),
-  ChargeExponent(0), TemperatureExponent(0), LuminosityExponent(0),
-  AmountExponent(0)>;
+using SpeedQuantity =
+    Quantity<LengthExponent(1), MassExponent(0), TimeExponent(-1),
+             AngleExponent(0), ChargeExponent(0), TemperatureExponent(0),
+             LuminosityExponent(0), AmountExponent(0)>;
+using AccelerationQuantity =
+    Quantity<LengthExponent(1), MassExponent(0), TimeExponent(-2),
+             AngleExponent(0), ChargeExponent(0), TemperatureExponent(0),
+             LuminosityExponent(0), AmountExponent(0)>;
+using ForceQuantity =
+    Quantity<LengthExponent(1), MassExponent(1), TimeExponent(-2),
+             AngleExponent(0), ChargeExponent(0), TemperatureExponent(0),
+             LuminosityExponent(0), AmountExponent(0)>;
+using MomentumQuantity =
+    Quantity<LengthExponent(1), MassExponent(1), TimeExponent(-1),
+             AngleExponent(0), ChargeExponent(0), TemperatureExponent(0),
+             LuminosityExponent(0), AmountExponent(0)>;
+using EnergyQuantity =
+    Quantity<LengthExponent(2), MassExponent(1), TimeExponent(-2),
+             AngleExponent(0), ChargeExponent(0), TemperatureExponent(0),
+             LuminosityExponent(0), AmountExponent(0)>;
+using FrequencyQuantity =
+    Quantity<LengthExponent(0), MassExponent(0), TimeExponent(-1),
+             AngleExponent(0), ChargeExponent(0), TemperatureExponent(0),
+             LuminosityExponent(0), AmountExponent(0)>;
+using AngularFrequencyQuantity =
+    Quantity<LengthExponent(0), MassExponent(0), TimeExponent(-1),
+             AngleExponent(1), ChargeExponent(0), TemperatureExponent(0),
+             LuminosityExponent(0), AmountExponent(0)>;
+using AngularAccelerationQuantity =
+    Quantity<LengthExponent(0), MassExponent(0), TimeExponent(-2),
+             AngleExponent(1), ChargeExponent(0), TemperatureExponent(0),
+             LuminosityExponent(0), AmountExponent(0)>;
+using MassMomentOfInertiaQuantity =
+    Quantity<LengthExponent(2), MassExponent(1), TimeExponent(0),
+             AngleExponent(0), ChargeExponent(0), TemperatureExponent(0),
+             LuminosityExponent(0), AmountExponent(0)>;
+using TorqueQuantity =
+    Quantity<LengthExponent(2), MassExponent(1), TimeExponent(-2),
+             AngleExponent(1), ChargeExponent(0), TemperatureExponent(0),
+             LuminosityExponent(0), AmountExponent(0)>;
+using AngularMomentumQuantity =
+    Quantity<LengthExponent(2), MassExponent(1), TimeExponent(-1),
+             AngleExponent(1), ChargeExponent(0), TemperatureExponent(0),
+             LuminosityExponent(0), AmountExponent(0)>;
+using AreaQuantity =
+    Quantity<LengthExponent(2), MassExponent(0), TimeExponent(0),
+             AngleExponent(0), ChargeExponent(0), TemperatureExponent(0),
+             LuminosityExponent(0), AmountExponent(0)>;
+using VolumeQuantity =
+    Quantity<LengthExponent(3), MassExponent(0), TimeExponent(0),
+             AngleExponent(0), ChargeExponent(0), TemperatureExponent(0),
+             LuminosityExponent(0), AmountExponent(0)>;
+using PressureQuantity =
+    Quantity<LengthExponent(-1), MassExponent(1), TimeExponent(-2),
+             AngleExponent(0), ChargeExponent(0), TemperatureExponent(0),
+             LuminosityExponent(0), AmountExponent(0)>;
 
-template <class T>
-inline void print(const T &quantity) {
-  if(quantity.variable) {
-    printf(
-      "%s = %.2lf [%s]\n", quantity.variable, quantity.value,
-      quantity.getUnits()
-    );
+template <class T> inline void print(const T &quantity) {
+  if (quantity.variable) {
+    printf("%s = %.2lf [%s]\n", quantity.variable, quantity.value,
+           quantity.getUnits());
   } else {
     printf("%.2lf [%s]\n", quantity.value, quantity.getUnits());
   }
@@ -437,23 +384,19 @@ inline constexpr auto getIrrationalPower(const T &quantity, const U &power) {
   return DimensionlessQuantity(pow(quantity.value, power.value));
 }
 
-template <class T>
-inline constexpr auto getSquare(const T &quantity) {
+template <class T> inline constexpr auto getSquare(const T &quantity) {
   return getRationalPower<2>(quantity);
 }
 
-template <class T>
-inline constexpr auto getSquareRoot(const T &quantity) {
+template <class T> inline constexpr auto getSquareRoot(const T &quantity) {
   return getRationalPower<1, 2>(quantity);
 }
 
-template <class T>
-inline constexpr auto getCube(const T &quantity) {
+template <class T> inline constexpr auto getCube(const T &quantity) {
   return getRationalPower<3>(quantity);
 }
 
-template <class T>
-inline constexpr auto getCubeRoot(const T &quantity) {
+template <class T> inline constexpr auto getCubeRoot(const T &quantity) {
   return getRationalPower<1, 3>(quantity);
 }
 
