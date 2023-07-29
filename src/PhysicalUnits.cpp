@@ -480,8 +480,6 @@ int main() {
   LengthQuantity Y(-3.45);
   LengthQuantity Z(-8.21);
 
-  DimensionlessQuantity two(2.00);
-
   auto magnitude = getSquareRoot(getSquare(X) + getSquare(Y) + getSquare(Z));
   magnitude.setVariableString("|r|");
 
