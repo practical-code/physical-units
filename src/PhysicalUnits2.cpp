@@ -1,7 +1,8 @@
 #include <cstdint>
 #include <iostream>
+#include <type_traits>
 
-using Integer = std::int64_t;
+using UInt64 = std::uint64_t;
 
 namespace Measure {
 
@@ -16,38 +17,64 @@ enum class Type {
   Amount
 };
 
-constexpr Integer Unit = 1;
+enum class Sign { Positive, Negative };
 
-template <Integer Numerator, Integer Denominator>
-consteval auto getGreatestCommonFactor() {
-  static_assert(Numerator >= Integer{});
-  static_assert(Denominator >= Integer{});
+template <UInt64 Minuend, UInt64 Subtrahend>
+[[nodiscard]] consteval auto getAbsoluteDifference() -> UInt64 {
+  return (Subtrahend < Minuend) ? (Minuend - Subtrahend)
+                                : (Subtrahend - Minuend);
+}
 
-  if constexpr (Denominator == Integer{}) {
-    return Numerator;
-  } else {
+template <UInt64 Numerator, UInt64 Denominator>
+[[nodiscard]] consteval auto getGreatestCommonFactor() -> UInt64 {
+  if constexpr (Denominator) {
     return getGreatestCommonFactor<Denominator, Numerator % Denominator>();
+  } else {
+    return Numerator;
   }
 }
 
-template <Integer Numerator, Integer Denominator>
-consteval auto getReducedNumerator() {
-  static_assert(Numerator >= Integer{});
-  static_assert(Denominator >= Integer{});
-
+template <UInt64 Numerator, UInt64 Denominator>
+[[nodiscard]] consteval auto getReducedNumerator() -> UInt64 {
   return Numerator / getGreatestCommonFactor<Numerator, Denominator>();
 }
 
-template <Integer Numerator, Integer Denominator>
-consteval auto getReducedDenominator() {
-  static_assert(Numerator >= Integer{});
-  static_assert(Denominator >= Integer{});
-
+template <UInt64 Numerator, UInt64 Denominator>
+[[nodiscard]] consteval auto getReducedDenominator() -> UInt64 {
   return Denominator / getGreatestCommonFactor<Numerator, Denominator>();
 }
 
+template <Type Measure, Sign Sense, UInt64 Numerator, UInt64 Denominator>
+struct [[nodiscard]] RationalExponent final {
+  using ReducedExponent =
+      RationalExponent<Measure, Sense,
+                       getReducedNumerator<Numerator, Denominator>(),
+                       getReducedDenominator<Numerator, Denominator>()>;
+
+  static_assert(std::is_same_v<RationalExponent, ReducedExponent>);
+
+  [[nodiscard]] static consteval auto getMeasure() -> Type { return Measure; }
+  [[nodiscard]] static consteval auto getSense() -> Sign { return Sense; }
+  [[nodiscard]] static consteval auto getNumerator() -> UInt64 {
+    return Numerator;
+  }
+  [[nodiscard]] static consteval auto getDenominator() -> UInt64 {
+    return Denominator;
+  }
+
+  template <UInt64 OtherNumerator, UInt64 OtherDenominator>
+  using AddedExponent = RationalExponent<
+      Measure, Numerator * OtherDenominator + OtherNumerator * Denominator,
+      Denominator * OtherDenominator>;
+
+  template <UInt64 OtherNumerator, UInt64 OtherDenominator>
+  using SubtractedExponent = RationalExponent<
+      Measure, Numerator * OtherDenominator - OtherNumerator * Denominator,
+      Denominator * OtherDenominator>;
+};
+
 /*
-template <Type Measure, Integer Numerator = Unit, Integer Denominator = Unit>
+template <Type Measure, UInt64 Numerator = Unit, UInt64 Denominator = Unit>
 struct RationalExponent final {
   static consteval auto getMeasure() { return Measure; }
   static consteval auto getNumerator() { return Numerator; }
@@ -55,17 +82,17 @@ struct RationalExponent final {
 
   using ThisType = RationalExponent;
 
-  template <Integer OtherNumerator, Integer OtherDenominator>
+  template <UInt64 OtherNumerator, UInt64 OtherDenominator>
   using ReducedExponent = RationalExponent<
       Measure, getReducedNumerator<OtherNumerator, OtherDenominator>(),
       getReducedDenominator<OtherNumerator, OtherDenominator>()>;
 
-  template <Integer OtherNumerator, Integer OtherDenominator>
+  template <UInt64 OtherNumerator, UInt64 OtherDenominator>
   using AddedExponent = RationalExponent<
       Measure, Numerator * OtherDenominator + OtherNumerator * Denominator,
       Denominator * OtherDenominator>;
 
-  template <Integer OtherNumerator, Integer OtherDenominator>
+  template <UInt64 OtherNumerator, UInt64 OtherDenominator>
   using SubtractedExponent = RationalExponent<
       Measure, Numerator * OtherDenominator - OtherNumerator * Denominator,
       Denominator * OtherDenominator>;
@@ -91,7 +118,6 @@ public:
 } // namespace Measure
 
 int main() {
-  constexpr auto numerator = Measure::getReducedNumerator<21, 74>();
-  constexpr auto denominator = Measure::getReducedDenominator<21, 74>();
-  std::cout << numerator << "/" << denominator << std::endl;
+  constexpr auto x = Measure::RationalExponent<Measure::Type::Length,
+                                               Measure::Sign::Positive, 1, 6>();
 }
